@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RsService {
@@ -68,12 +69,15 @@ public class RsService {
     if(trade.getAmount()<=tradeAmountForRank.get(trade.getRank()-1)){
       throw new RequestNotValidException("invlid trade amount");
     }
+    RsEventDto rsEvent = rsEventDto.get();
     TradeDto tradeDto = TradeDto.builder().amount(trade.getAmount())
             .rank(trade.getRank())
-            .rsEvent(rsEventDto.get())
+            .rsEvent(rsEvent)
             .build();
     tradeRepository.save(tradeDto);
     tradeAmountForRank.set(trade.getRank()-1,trade.getAmount());
+    rsEvent.setTradeRank(trade.getRank());
+    rsEventRepository.save(rsEvent);
   }
 
   public void postEvent(RsEvent rsEvent) {
@@ -98,5 +102,41 @@ public class RsService {
     rsEventRepository.deleteAll();
     userRepository.deleteAll();
     tradeAmountForRank.clear();
+  }
+
+  public List<RsEvent> getEventList(Integer start, Integer end) {
+    List<RsEvent> rsEvents =
+            rsEventRepository.findAll().stream()
+                    .map(
+                            item ->
+                                    RsEvent.builder()
+                                            .eventName(item.getEventName())
+                                            .keyword(item.getKeyword())
+                                            .userId(item.getId())
+                                            .voteNum(item.getVoteNum())
+                                            .build())
+                    .collect(Collectors.toList());
+    if (start == null || end == null) {
+      return rsEvents;
+    }
+    return rsEvents.subList(start - 1, end);
+  }
+
+  public RsEvent getEventByIndex(int index) {
+    List<RsEvent> rsEvents =
+            rsEventRepository.findAll().stream()
+                    .map(
+                            item ->
+                                    RsEvent.builder()
+                                            .eventName(item.getEventName())
+                                            .keyword(item.getKeyword())
+                                            .userId(item.getId())
+                                            .voteNum(item.getVoteNum())
+                                            .build())
+                    .collect(Collectors.toList());
+    if (index < 1 || index > rsEvents.size()) {
+      throw new RequestNotValidException("invalid index");
+    }
+    return rsEvents.get(index - 1);
   }
 }

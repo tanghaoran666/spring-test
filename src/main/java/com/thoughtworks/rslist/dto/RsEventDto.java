@@ -22,5 +22,6 @@ public class RsEventDto {
   private String eventName;
   private String keyword;
   private int voteNum;
+  private int tradeRank = 0;
   @ManyToOne private UserDto user;
 }

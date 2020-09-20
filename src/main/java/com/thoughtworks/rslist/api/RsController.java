@@ -36,40 +36,14 @@ public class RsController {
   @GetMapping("/rs/list")
   public ResponseEntity<List<RsEvent>> getRsEventListBetween(
       @RequestParam(required = false) Integer start, @RequestParam(required = false) Integer end) {
-    List<RsEvent> rsEvents =
-        rsEventRepository.findAll().stream()
-            .map(
-                item ->
-                    RsEvent.builder()
-                        .eventName(item.getEventName())
-                        .keyword(item.getKeyword())
-                        .userId(item.getId())
-                        .voteNum(item.getVoteNum())
-                        .build())
-            .collect(Collectors.toList());
-    if (start == null || end == null) {
-      return ResponseEntity.ok(rsEvents);
-    }
-    return ResponseEntity.ok(rsEvents.subList(start - 1, end));
+    List<RsEvent> rsEvents = rsService.getEventList(start,end);
+    return ResponseEntity.ok(rsEvents);
   }
 
   @GetMapping("/rs/{index}")
   public ResponseEntity<RsEvent> getRsEvent(@PathVariable int index) {
-    List<RsEvent> rsEvents =
-        rsEventRepository.findAll().stream()
-            .map(
-                item ->
-                    RsEvent.builder()
-                        .eventName(item.getEventName())
-                        .keyword(item.getKeyword())
-                        .userId(item.getId())
-                        .voteNum(item.getVoteNum())
-                        .build())
-            .collect(Collectors.toList());
-    if (index < 1 || index > rsEvents.size()) {
-      throw new RequestNotValidException("invalid index");
-    }
-    return ResponseEntity.ok(rsEvents.get(index - 1));
+    RsEvent rsEvent = rsService.getEventByIndex(index);
+    return ResponseEntity.ok(rsEvent);
   }
 
   @PostMapping("/rs/event")
