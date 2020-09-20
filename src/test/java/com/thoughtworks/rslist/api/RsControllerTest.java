@@ -197,17 +197,18 @@ class RsControllerTest {
 
   @Test
   public void shouldTradeRankSuccess() throws Exception{
+
     UserDto save = userRepository.save(userDto);
-    RsEventDto rsEventDto =
+    RsEventDto rsEventDto1 =
             RsEventDto.builder().keyword("无分类").eventName("第一条事件").user(save).build();
-    rsEventDto = rsEventRepository.save(rsEventDto);
+    rsEventDto1 = rsEventRepository.save(rsEventDto1);
 
     Trade trade1 = Trade.builder().amount(1).rank(1).build();
     String jsonValue1 = objectMapper.writeValueAsString(trade1);
 
     mockMvc
             .perform(
-                    post("/rs/buy/{id}", rsEventDto.getId())
+                    post("/rs/buy/{id}", rsEventDto1.getId())
                             .content(jsonValue1)
                             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk());
@@ -216,21 +217,23 @@ class RsControllerTest {
     Trade trade2 = Trade.builder().amount(2).rank(1).build();
     String jsonValue2 = objectMapper.writeValueAsString(trade2);
 
+
+    RsEventDto rsEventDto2 =
+            RsEventDto.builder().keyword("无分类").eventName("第二条事件").user(save).build();
+    rsEventDto2 = rsEventRepository.save(rsEventDto2);
     mockMvc
             .perform(
-                    post("/rs/buy/{id}", rsEventDto.getId())
+                    post("/rs/buy/{id}", rsEventDto2.getId())
                             .content(jsonValue2)
                             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk());
 
     List<TradeDto> trades = tradeRepository.findAll();
-    assertEquals(2,trades.size());
-    assertEquals(1,trades.get(0).getAmount());
+    assertEquals(1,trades.size());
+    assertEquals(2,trades.get(0).getAmount());
     assertEquals(1,trades.get(0).getRank());
-    assertEquals(rsEventDto.getId(),trades.get(0).getRsEvent().getId());
-    assertEquals(2,trades.get(1).getAmount());
-    assertEquals(1,trades.get(1).getRank());
-    assertEquals(rsEventDto.getId(),trades.get(1).getRsEvent().getId());
+    assertEquals(rsEventDto2.getId(),trades.get(0).getRsEvent().getId());
+    assertEquals(1,rsEventRepository.findAll().size());
 
   }
   @Test
@@ -262,4 +265,6 @@ class RsControllerTest {
             .andExpect(jsonPath("$.error",is("invlid trade amount")));
 
   }
+
+
 }

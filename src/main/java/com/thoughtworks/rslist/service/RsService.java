@@ -76,6 +76,10 @@ public class RsService {
             .build();
     tradeRepository.save(tradeDto);
     tradeAmountForRank.set(trade.getRank()-1,trade.getAmount());
+    if(rsEventRepository.findByTradeRank(trade.getRank()).isPresent()){
+      tradeRepository.deleteAllByRsEventId(rsEventRepository.findByTradeRank(trade.getRank()).get().getId());
+      rsEventRepository.deleteAllByTradeRank(trade.getRank());
+    }
     rsEvent.setTradeRank(trade.getRank());
     rsEventRepository.save(rsEvent);
   }
