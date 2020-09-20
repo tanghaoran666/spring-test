@@ -1,16 +1,23 @@
 package com.thoughtworks.rslist.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.thoughtworks.rslist.domain.RsEvent;
 import com.thoughtworks.rslist.domain.Trade;
 import com.thoughtworks.rslist.domain.Vote;
 import com.thoughtworks.rslist.dto.RsEventDto;
+import com.thoughtworks.rslist.dto.TradeDto;
 import com.thoughtworks.rslist.dto.UserDto;
 import com.thoughtworks.rslist.dto.VoteDto;
+import com.thoughtworks.rslist.exception.RequestNotValidException;
 import com.thoughtworks.rslist.repository.RsEventRepository;
+import com.thoughtworks.rslist.repository.TradeRepository;
 import com.thoughtworks.rslist.repository.UserRepository;
 import com.thoughtworks.rslist.repository.VoteRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -18,11 +25,13 @@ public class RsService {
   final RsEventRepository rsEventRepository;
   final UserRepository userRepository;
   final VoteRepository voteRepository;
-
-  public RsService(RsEventRepository rsEventRepository, UserRepository userRepository, VoteRepository voteRepository) {
+  final TradeRepository tradeRepository;
+  private List<Integer> tradeAmountForRank = new ArrayList<>();
+  public RsService(RsEventRepository rsEventRepository, UserRepository userRepository, VoteRepository voteRepository, TradeRepository tradeRepository) {
     this.rsEventRepository = rsEventRepository;
     this.userRepository = userRepository;
     this.voteRepository = voteRepository;
+    this.tradeRepository = tradeRepository;
   }
 
   public void vote(Vote vote, int rsEventId) {
@@ -50,6 +59,44 @@ public class RsService {
   }
 
   public void buy(Trade trade, int id) {
+    tradeAmountForRank.add(0);
+    Optional<RsEventDto> rsEventDto = rsEventRepository.findById(id);
+    if(!rsEventDto.isPresent()){
+      throw new RequestNotValidException("invlid trade id");
+    }
 
+    if(trade.getAmount()<=tradeAmountForRank.get(trade.getRank()-1)){
+      throw new RequestNotValidException("invlid trade amount");
+    }
+    TradeDto tradeDto = TradeDto.builder().amount(trade.getAmount())
+            .rank(trade.getRank())
+            .rsEvent(rsEventDto.get())
+            .build();
+    tradeRepository.save(tradeDto);
+    tradeAmountForRank.set(trade.getRank()-1,trade.getAmount());
+  }
+
+  public void postEvent(RsEvent rsEvent) {
+    Optional<UserDto> userDto = userRepository.findById(rsEvent.getUserId());
+    if (!userDto.isPresent()) {
+      throw new RequestNotValidException("invalid userId");
+    }
+    RsEventDto build =
+            RsEventDto.builder()
+                    .keyword(rsEvent.getKeyword())
+                    .eventName(rsEvent.getEventName())
+                    .voteNum(0)
+                    .user(userDto.get())
+                    .build();
+    rsEventRepository.save(build);
+    tradeAmountForRank.add(0);
+  }
+
+  public void init() {
+    tradeRepository.deleteAll();
+    voteRepository.deleteAll();
+    rsEventRepository.deleteAll();
+    userRepository.deleteAll();
+    tradeAmountForRank.clear();
   }
 }

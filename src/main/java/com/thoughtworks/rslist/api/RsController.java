@@ -74,18 +74,7 @@ public class RsController {
 
   @PostMapping("/rs/event")
   public ResponseEntity addRsEvent(@RequestBody @Valid RsEvent rsEvent) {
-    Optional<UserDto> userDto = userRepository.findById(rsEvent.getUserId());
-    if (!userDto.isPresent()) {
-      return ResponseEntity.badRequest().build();
-    }
-    RsEventDto build =
-        RsEventDto.builder()
-            .keyword(rsEvent.getKeyword())
-            .eventName(rsEvent.getEventName())
-            .voteNum(0)
-            .user(userDto.get())
-            .build();
-    rsEventRepository.save(build);
+    rsService.postEvent(rsEvent);
     return ResponseEntity.created(null).build();
   }
 
@@ -100,7 +89,6 @@ public class RsController {
     rsService.buy(trade, id);
     return ResponseEntity.ok().build();
   }
-
 
   @ExceptionHandler(RequestNotValidException.class)
   public ResponseEntity<Error> handleRequestErrorHandler(RequestNotValidException e) {
