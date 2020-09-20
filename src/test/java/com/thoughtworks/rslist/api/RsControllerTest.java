@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -66,17 +67,29 @@ class RsControllerTest {
   public void shouldGetRsEventList() throws Exception {
     UserDto save = userRepository.save(userDto);
 
+    for (int i = 0; i < 5; i++) {
+      RsEventDto rsEventDto =
+              RsEventDto.builder().keyword("无分类").eventName("第一条事件").voteNum(5-i).user(save).build();
+
+      rsEventRepository.save(rsEventDto);
+    }
+
     RsEventDto rsEventDto =
-        RsEventDto.builder().keyword("无分类").eventName("第一条事件").user(save).build();
+            RsEventDto.builder().keyword("无分类").eventName("第三条事件").voteNum(3).user(save).build();
 
     rsEventRepository.save(rsEventDto);
-
     mockMvc
         .perform(get("/rs/list"))
-        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$", hasSize(6)))
         .andExpect(jsonPath("$[0].eventName", is("第一条事件")))
         .andExpect(jsonPath("$[0].keyword", is("无分类")))
         .andExpect(jsonPath("$[0]", not(hasKey("user"))))
+            .andExpect(jsonPath("$[0].voteNum",is(5)))
+            .andExpect(jsonPath("$[1].voteNum",is(4)))
+            .andExpect(jsonPath("$[2].voteNum",is(3)))
+            .andExpect(jsonPath("$[3].voteNum",is(3)))
+            .andExpect(jsonPath("$[4].voteNum",is(2)))
+            .andExpect(jsonPath("$[5].voteNum",is(1)))
         .andExpect(status().isOk());
   }
 
@@ -151,7 +164,7 @@ class RsControllerTest {
     mockMvc
         .perform(post("/rs/event").content(jsonValue).contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isCreated());
-    List<RsEventDto> all = rsEventRepository.findAll();
+    List<RsEventDto> all = rsEventRepository.findAll(Sort.by(Sort.Direction.DESC,"voteNum"));
     assertNotNull(all);
     assertEquals(all.size(), 1);
     assertEquals(all.get(0).getEventName(), "猪肉涨价了");
@@ -233,7 +246,7 @@ class RsControllerTest {
     assertEquals(2,trades.get(0).getAmount());
     assertEquals(1,trades.get(0).getRank());
     assertEquals(rsEventDto2.getId(),trades.get(0).getRsEvent().getId());
-    assertEquals(1,rsEventRepository.findAll().size());
+    assertEquals(1,rsEventRepository.findAll(Sort.by(Sort.Direction.DESC,"voteNum")).size());
 
   }
   @Test

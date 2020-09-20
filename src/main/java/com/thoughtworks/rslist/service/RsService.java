@@ -13,6 +13,7 @@ import com.thoughtworks.rslist.repository.RsEventRepository;
 import com.thoughtworks.rslist.repository.TradeRepository;
 import com.thoughtworks.rslist.repository.UserRepository;
 import com.thoughtworks.rslist.repository.VoteRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -110,7 +111,7 @@ public class RsService {
 
   public List<RsEvent> getEventList(Integer start, Integer end) {
     List<RsEvent> rsEvents =
-            rsEventRepository.findAll().stream()
+            rsEventRepository.findAll(Sort.by(Sort.Direction.DESC,"voteNum")).stream()
                     .map(
                             item ->
                                     RsEvent.builder()
@@ -128,7 +129,7 @@ public class RsService {
 
   public RsEvent getEventByIndex(int index) {
     List<RsEvent> rsEvents =
-            rsEventRepository.findAll().stream()
+            rsEventRepository.findAll(Sort.by(Sort.Direction.DESC,"voteNum")).stream()
                     .map(
                             item ->
                                     RsEvent.builder()
