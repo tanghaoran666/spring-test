@@ -146,4 +146,17 @@ class RsServiceTest {
             });
   }
 
+  @Test
+  void shouldThrowExceptionWhenEventIdNotExist() {
+    // given
+    when(rsEventRepository.findById(anyInt())).thenReturn(Optional.empty());
+    Trade trade = Trade.builder().rank(1).amount(1).build();
+    //when&then
+    assertThrows(
+            RequestNotValidException.class,
+            () -> {
+              rsService.buy(trade, 1);
+            });
+  }
+
 }
