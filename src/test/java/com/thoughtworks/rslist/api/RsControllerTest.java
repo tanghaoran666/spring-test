@@ -293,5 +293,36 @@ class RsControllerTest {
             .andExpect(jsonPath("$.error",is("invlid trade id")));
   }
 
+  @Test
+  public void shouldGetEventListHasVoteAndTrade() throws Exception {
+    UserDto save = userRepository.save(userDto);
+
+    for (int i = 0; i < 5; i++) {
+      RsEventDto rsEventDto =
+              RsEventDto.builder().keyword("无分类").eventName("无名事件").voteNum(5-i).user(save).build();
+
+      rsEventRepository.save(rsEventDto);
+    }
+
+    RsEventDto rsEventDto =
+            RsEventDto.builder().keyword("买的").eventName("叫我第一名").voteNum(2).user(save).build();
+    rsEventDto = rsEventRepository.save(rsEventDto);
+    Trade trade = Trade.builder().rank(1).amount(10).build();
+    rsService.buy(trade,rsEventDto.getId());
+
+    mockMvc
+            .perform(get("/rs/list"))
+            .andExpect(jsonPath("$", hasSize(6)))
+            .andExpect(jsonPath("$[0].eventName", is("叫我第一名")))
+            .andExpect(jsonPath("$[0].keyword", is("买的")))
+            .andExpect(jsonPath("$[0].voteNum",is(2)))
+            .andExpect(jsonPath("$[1].voteNum",is(5)))
+            .andExpect(jsonPath("$[2].voteNum",is(4)))
+            .andExpect(jsonPath("$[3].voteNum",is(3)))
+            .andExpect(jsonPath("$[4].voteNum",is(2)))
+            .andExpect(jsonPath("$[5].voteNum",is(1)))
+            .andExpect(status().isOk());
+  }
+
 
 }

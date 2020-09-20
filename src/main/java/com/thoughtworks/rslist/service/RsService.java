@@ -110,17 +110,27 @@ public class RsService {
   }
 
   public List<RsEvent> getEventList(Integer start, Integer end) {
-    List<RsEvent> rsEvents =
-            rsEventRepository.findAll(Sort.by(Sort.Direction.DESC,"voteNum")).stream()
-                    .map(
-                            item ->
-                                    RsEvent.builder()
-                                            .eventName(item.getEventName())
-                                            .keyword(item.getKeyword())
-                                            .userId(item.getId())
-                                            .voteNum(item.getVoteNum())
-                                            .build())
-                    .collect(Collectors.toList());
+    List<RsEvent> rsEvents = new ArrayList<>();
+    List<RsEvent> rsEventsByTrade = new ArrayList<>();
+
+    rsEventRepository.findAll(Sort.by(Sort.Direction.DESC,"voteNum")).stream()
+            .forEach(
+                    item -> {
+                      RsEvent rsEvent = RsEvent.builder()
+                              .eventName(item.getEventName())
+                              .keyword(item.getKeyword())
+                              .userId(item.getId())
+                              .voteNum(item.getVoteNum())
+                              .tradeRank(item.getTradeRank())
+                              .build();
+                      if (rsEvent.getTradeRank() != 0){
+                        rsEventsByTrade.add(rsEvent);
+                      }else rsEvents.add(rsEvent);
+                    }
+            );
+    for (RsEvent rsEvent : rsEventsByTrade) {
+      rsEvents.add(rsEvent.getTradeRank()-1,rsEvent);
+    }
     if (start == null || end == null) {
       return rsEvents;
     }
