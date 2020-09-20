@@ -279,5 +279,19 @@ class RsControllerTest {
 
   }
 
+  @Test
+  public void shouldThrowExceptionWhenEventIdInvalid() throws Exception{
+    Trade trade = Trade.builder().amount(1).rank(1).build();
+    String jsonValue = objectMapper.writeValueAsString(trade);
+
+    mockMvc
+            .perform(
+                    post("/rs/buy/{id}", 100)
+                            .content(jsonValue)
+                            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error",is("invlid trade id")));
+  }
+
 
 }
