@@ -1,7 +1,9 @@
 package com.thoughtworks.rslist.service;
 
+import com.thoughtworks.rslist.domain.Trade;
 import com.thoughtworks.rslist.domain.Vote;
 import com.thoughtworks.rslist.dto.RsEventDto;
+import com.thoughtworks.rslist.dto.TradeDto;
 import com.thoughtworks.rslist.dto.UserDto;
 import com.thoughtworks.rslist.dto.VoteDto;
 import com.thoughtworks.rslist.repository.RsEventRepository;
@@ -27,8 +29,7 @@ class RsServiceTest {
   @Mock RsEventRepository rsEventRepository;
   @Mock UserRepository userRepository;
   @Mock VoteRepository voteRepository;
-  @Mock
-  TradeRepository tradeRepository;
+  @Mock TradeRepository tradeRepository;
   LocalDateTime localDateTime;
   Vote vote;
 
@@ -38,6 +39,7 @@ class RsServiceTest {
     rsService = new RsService(rsEventRepository, userRepository, voteRepository, tradeRepository);
     localDateTime = LocalDateTime.now();
     vote = Vote.builder().voteNum(2).rsEventId(1).time(localDateTime).userId(1).build();
+    rsService.init();
   }
 
   @Test
@@ -92,4 +94,42 @@ class RsServiceTest {
           rsService.vote(vote, 1);
         });
   }
+
+  @Test
+  void shouldTradeEventSuccess(){
+    //given
+    UserDto userDto =
+            UserDto.builder()
+                    .voteNum(5)
+                    .phone("18888888888")
+                    .gender("female")
+                    .email("a@b.com")
+                    .age(19)
+                    .userName("xiaoli")
+                    .id(2)
+                    .build();
+    RsEventDto rsEventDto =
+            RsEventDto.builder()
+                    .eventName("event name")
+                    .id(1)
+                    .keyword("keyword")
+                    .voteNum(2)
+                    .user(userDto)
+                    .build();
+    Trade trade = Trade.builder().amount(10).rank(1).build();
+    when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
+    when(userRepository.findById(anyInt())).thenReturn(Optional.of(userDto));
+    //when
+    rsService.buy(trade,1);
+    //then
+    verify(tradeRepository)
+            .save(
+                    TradeDto.builder()
+                            .rank(1)
+                            .amount(10)
+                            .rsEvent(rsEventDto)
+                            .build());
+    verify(rsEventRepository).save(rsEventDto);
+  }
+
 }
