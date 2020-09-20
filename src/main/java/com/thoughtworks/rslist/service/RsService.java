@@ -36,6 +36,16 @@ public class RsService {
     this.tradeRepository = tradeRepository;
   }
 
+
+  public void init() {
+    tradeRepository.deleteAll();
+    voteRepository.deleteAll();
+    rsEventRepository.deleteAll();
+    userRepository.deleteAll();
+    tradeAmountForRank.clear();
+    tradeAmountForRank.add(0);
+  }
+
   public void vote(Vote vote, int rsEventId) {
     Optional<RsEventDto> rsEventDto = rsEventRepository.findById(rsEventId);
     Optional<UserDto> userDto = userRepository.findById(vote.getUserId());
@@ -61,7 +71,6 @@ public class RsService {
   }
 
   public void buy(Trade trade, int id) {
-    tradeAmountForRank.add(0);
     Optional<RsEventDto> rsEventDto = rsEventRepository.findById(id);
     if(!rsEventDto.isPresent()){
       throw new RequestNotValidException("invlid trade id");
@@ -101,13 +110,7 @@ public class RsService {
     tradeAmountForRank.add(0);
   }
 
-  public void init() {
-    tradeRepository.deleteAll();
-    voteRepository.deleteAll();
-    rsEventRepository.deleteAll();
-    userRepository.deleteAll();
-    tradeAmountForRank.clear();
-  }
+
 
   public List<RsEvent> getEventList(Integer start, Integer end) {
     List<RsEvent> rsEvents = new ArrayList<>();
@@ -153,5 +156,10 @@ public class RsService {
       throw new RequestNotValidException("invalid index");
     }
     return rsEvents.get(index - 1);
+  }
+
+  public void deleteEventByIndex(int index) {
+    rsEventRepository.deleteById(index);
+    tradeAmountForRank.remove(tradeAmountForRank.size()-1);
   }
 }

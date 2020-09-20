@@ -28,10 +28,8 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -324,5 +322,17 @@ class RsControllerTest {
             .andExpect(status().isOk());
   }
 
+  @Test
+  public void shouldDeleteEventBuId() throws Exception {
+    UserDto save = userRepository.save(userDto);
+    RsEventDto rsEventDto =
+            RsEventDto.builder().keyword("无分类").eventName("无名事件").voteNum(5).user(save).build();
+    rsEventDto = rsEventRepository.save(rsEventDto);
+    assertEquals(1,rsEventRepository.findAll(Sort.by(Sort.Direction.DESC,"voteNum")).size());
+    mockMvc.perform(delete("/rs/{index}",rsEventDto.getId()))
+            .andExpect(status().isOk());
+    assertEquals(0,rsEventRepository.findAll(Sort.by(Sort.Direction.DESC,"voteNum")).size());
+
+  }
 
 }
