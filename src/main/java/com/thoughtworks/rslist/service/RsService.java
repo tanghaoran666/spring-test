@@ -28,7 +28,7 @@ public class RsService {
   final UserRepository userRepository;
   final VoteRepository voteRepository;
   final TradeRepository tradeRepository;
-  private List<Integer> tradeAmountForRank = new ArrayList<>();
+  public List<Integer> tradeAmountForRank = new ArrayList<>();
   public RsService(RsEventRepository rsEventRepository, UserRepository userRepository, VoteRepository voteRepository, TradeRepository tradeRepository) {
     this.rsEventRepository = rsEventRepository;
     this.userRepository = userRepository;

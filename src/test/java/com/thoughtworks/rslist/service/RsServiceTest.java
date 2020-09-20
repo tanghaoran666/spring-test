@@ -6,6 +6,7 @@ import com.thoughtworks.rslist.dto.RsEventDto;
 import com.thoughtworks.rslist.dto.TradeDto;
 import com.thoughtworks.rslist.dto.UserDto;
 import com.thoughtworks.rslist.dto.VoteDto;
+import com.thoughtworks.rslist.exception.RequestNotValidException;
 import com.thoughtworks.rslist.repository.RsEventRepository;
 import com.thoughtworks.rslist.repository.TradeRepository;
 import com.thoughtworks.rslist.repository.UserRepository;
@@ -130,6 +131,19 @@ class RsServiceTest {
                             .rsEvent(rsEventDto)
                             .build());
     verify(rsEventRepository).save(rsEventDto);
+  }
+
+  @Test
+  void shouldThrowExceptionWhenAmountLess() {
+    // given
+    Trade trade = Trade.builder().rank(1).amount(1).build();
+    rsService.tradeAmountForRank.set(0,1);
+    //when&then
+    assertThrows(
+            RequestNotValidException.class,
+            () -> {
+              rsService.buy(trade, 1);
+            });
   }
 
 }
