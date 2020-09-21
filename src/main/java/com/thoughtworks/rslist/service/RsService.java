@@ -72,8 +72,8 @@ public class RsService {
 
   public void buy(Trade trade, int id) {
     Optional<RsEventDto> rsEventDto = rsEventRepository.findById(id);
-    if(!rsEventDto.isPresent()){
-      throw new RequestNotValidException("invlid trade id");
+    if(!rsEventDto.isPresent() || trade.getRank()>tradeAmountForRank.size()){
+      throw new RequestNotValidException("invlid trade param");
     }
 
     if(trade.getAmount()<=tradeAmountForRank.get(trade.getRank()-1)){

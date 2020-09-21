@@ -159,4 +159,37 @@ class RsServiceTest {
             });
   }
 
+  @Test
+  void shouldThrowExceptionWhenRankNotExist() {
+    // given
+    UserDto userDto =
+            UserDto.builder()
+                    .voteNum(5)
+                    .phone("18888888888")
+                    .gender("female")
+                    .email("a@b.com")
+                    .age(19)
+                    .userName("xiaoli")
+                    .id(2)
+                    .build();
+    RsEventDto rsEventDto =
+            RsEventDto.builder()
+                    .eventName("event name")
+                    .id(1)
+                    .keyword("keyword")
+                    .voteNum(2)
+                    .user(userDto)
+                    .build();
+    when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
+    when(userRepository.findById(anyInt())).thenReturn(Optional.of(userDto));
+    when(rsEventRepository.findById(anyInt())).thenReturn(Optional.empty());
+    Trade trade = Trade.builder().rank(100).amount(1).build();
+    //when&then
+    assertThrows(
+            RequestNotValidException.class,
+            () -> {
+              rsService.buy(trade, 1);
+            });
+  }
+
 }
