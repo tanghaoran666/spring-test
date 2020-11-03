@@ -222,7 +222,7 @@ class RsControllerTest {
                     post("/rs/buy/{id}", rsEventDto1.getId())
                             .content(jsonValue1)
                             .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk());
+            .andExpect(status().isCreated());
 
 
     Trade trade2 = Trade.builder().amount(2).rank(1).build();
